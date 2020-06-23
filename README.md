@@ -37,7 +37,10 @@ $ ksnap restore -b kafka1:9092,kafka2:9092 -t Topic1,Topic2 -d ./backupDir
 ```
 
 ## Install
+Get latest binary version for your architecture from [releases page](https://github.com/EclipseTrading/ksnap/releases).
+If your desired architecture is not available you can see below how to build from source.
 
+## Build
 You should use Go compiler 1.14 or newer
 
 ```
