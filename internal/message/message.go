@@ -177,8 +177,6 @@ func (m *message) EncodeBytes() []byte {
 	headersData := make([]byte, 0)
 	for _, h := range m.headers {
 		if h == nil {
-			// TODO: fix this issue
-			//log.Errorf("Header in byte encode function was nil for topic [%s], partition [%d], offset [%d]. Skipping this header", m.topic, m.partition, m.offset)
 			continue
 		}
 		headersData = append(headersData, h.EncodeBytes()...)

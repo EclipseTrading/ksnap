@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// TODO: Implement consumer offset restoration
 // TODO: Implement authentication
 
 func main() {

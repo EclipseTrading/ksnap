@@ -52,7 +52,7 @@ func backup(brokers, topicNames []string, dataDir string) {
 			panic(err)
 		}
 
-		log.Infof("Created datastore for topic [%s] partition [%d] done", p.Topic(), p.Id())
+		log.Infof("Created datastore for topic [%s] partition [%d]", p.Topic(), p.Id())
 
 		// get consumer offsets from Kafka and set it to datastore
 		kafkaOffsets, err := p.GetConsumerOffsets()
@@ -68,11 +68,10 @@ func backup(brokers, topicNames []string, dataDir string) {
 			panic(err)
 		}
 
-		log.Infof("Got consumer offsets for topic [%s] partition [%d] done", p.Topic(), p.Id())
+		log.Infof("Got consumer offsets for topic [%s] partition [%d]", p.Topic(), p.Id())
 
 		if p.Size() > 0 {
 			for msg := range p.ReadMessages() {
-				//log.Infof("Topic [%s], partition [%d], message offset [%d], stop at [%d]", p.Topic(), p.Id(), msg.Offset(), p.EndOffset())
 				err := ds.WriteMessage(msg.EncodeBytes())
 				if err != nil {
 					panic(err)
@@ -80,14 +79,14 @@ func backup(brokers, topicNames []string, dataDir string) {
 			}
 		}
 
-		log.Infof("Processed all messages for topic [%s] partition [%d] done", p.Topic(), p.Id())
+		log.Infof("Processed all messages for topic [%s] partition [%d]", p.Topic(), p.Id())
 
 		err = ds.Close()
 		if err != nil {
 			panic(err)
 		}
 
-		log.Infof("Closed datastore for topic [%s] partition [%d] done", p.Topic(), p.Id())
+		log.Infof("Closed datastore for topic [%s] partition [%d]", p.Topic(), p.Id())
 
 		log.Infof("Snapshot of topic [%s] partition [%d] done", p.Topic(), p.Id())
 	}
