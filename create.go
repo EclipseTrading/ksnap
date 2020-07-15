@@ -24,7 +24,7 @@ func create(brokers, topicNames []string, dataDir string, opts *utils.Options) {
 
 	log.Info("Connected to cluster")
 
-	var partitions []kafka.Partition
+	partitions := make([]kafka.Partition, 0)
 
 	for _, name := range topicNames {
 		t := c.Topic(name)
@@ -44,6 +44,11 @@ func create(brokers, topicNames []string, dataDir string, opts *utils.Options) {
 
 			partitions = append(partitions, p)
 		}
+	}
+
+	if len(partitions) == 0 {
+		log.Fatalf("No topics/partitions remains to make a snapshot")
+		return
 	}
 
 	log.Info("Creating a snapshot")
