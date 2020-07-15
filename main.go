@@ -40,19 +40,20 @@ func main() {
 	createCmd := p.NewCommand("create", "Create a point-in-time snapshot of Apache Kafka data")
 	restoreCmd := p.NewCommand("restore", "Restore a point-in-time snapshot of Apache Kafka data")
 
-	// Optional arguments
-	opts := &utils.Options{
-		IgnoreMissingTopics: *ignoreMissingTopicsFlag,
-	}
-
 	err := p.Parse(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Main arguments
 	brokers := utils.SplitCommaString(*brokersString)
 	topics := utils.SplitCommaString(*topicsString)
 	dataDir := *dataDirString
+
+	// Additional arguments
+	opts := &utils.Options{
+		IgnoreMissingTopics: *ignoreMissingTopicsFlag,
+	}
 
 	if createCmd.Happened() {
 		create(brokers, topics, dataDir, opts)
