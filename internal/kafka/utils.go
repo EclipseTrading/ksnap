@@ -22,3 +22,6 @@ func getKafkaConfig() *sarama.Config {
 
 	return config
 }
+
+var OffsetOldest = sarama.OffsetOldest
+var OffsetNewest = sarama.OffsetNewest

@@ -7,8 +7,8 @@ import (
 	"ksnap/utils"
 )
 
-func backup(brokers, topicNames []string, dataDir string) {
-	// Data directory should be empty for backup
+func create(brokers, topicNames []string, dataDir string, opts *utils.Options) {
+	// Data directory should be empty for new snapshot
 	isEmpty, err := utils.IsDirEmpty(dataDir)
 	if err != nil {
 		log.Fatal(err)
@@ -29,6 +29,12 @@ func backup(brokers, topicNames []string, dataDir string) {
 	for _, name := range topicNames {
 		t := c.Topic(name)
 		if t == nil {
+			if opts.IgnoreMissingTopics {
+				// Should ignore topics that are missing in cluster
+				// but still print warning
+				log.Warnf("Topic [%s] does not exist in cluster", name)
+				continue
+			}
 			log.Fatalf("Topic [%s] does not exist", name)
 			return
 		}
@@ -40,7 +46,7 @@ func backup(brokers, topicNames []string, dataDir string) {
 		}
 	}
 
-	log.Info("Starting a backup")
+	log.Info("Creating a snapshot")
 
 	// Iterate over partitions
 	for _, p := range partitions {

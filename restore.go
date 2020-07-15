@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/Shopify/sarama"
 	"github.com/akamensky/go-log"
 	"io"
 	"ksnap/internal/datastore"
 	"ksnap/internal/kafka"
 	"ksnap/internal/message"
+	"ksnap/utils"
 	"math"
 	"strings"
 	"sync"
 )
 
-func restore(brokers, topicNames []string, dataDir string) {
+func restore(brokers, topicNames []string, dataDir string, opts *utils.Options) {
 	// Recover from panics
 	defer func() {
 		if r := recover(); r != nil {
@@ -29,7 +29,7 @@ func restore(brokers, topicNames []string, dataDir string) {
 		log.Fatal(err)
 	}
 
-	// load list of topics in backup
+	// load list of topics in snapshot
 	topicsInBackup, err := datastore.ListTopics(dataDir)
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +52,7 @@ func restore(brokers, topicNames []string, dataDir string) {
 		}
 	}
 
-	// list all topic-partitions in backup
+	// list all topic-partitions in snapshot
 	topicPartitionsInBackup := make(map[string][]int32)
 	for _, tib := range topicsInBackup {
 		parts, err := datastore.ListPartitions(dataDir, tib)
@@ -101,7 +101,7 @@ func restore(brokers, topicNames []string, dataDir string) {
 
 	// if any of the error conditions happened. we should print them all and exit
 	if len(topicsNotInBackup) > 0 || len(topicsNotInKafka) > 0 || len(topicPartitionsInKafkaLess) > 0 || len(topicPartitionsInKafkaMore) > 0 || len(topicPartitionsInKafkaNotEmpty) > 0 {
-		// fail if topic list from CLI has topics not in this backup
+		// fail if topic list from CLI has topics not in this snapshot
 		if len(topicsNotInBackup) > 0 {
 			log.Errorf("Requested restore of topics not present in snapshot [ %s ]", strings.Join(topicsNotInBackup, ", "))
 		}
@@ -225,12 +225,12 @@ func restore(brokers, topicNames []string, dataDir string) {
 			for consumerGroup, oldOffset := range oldOffsets {
 				if oldOffset.Offset() == 0 { // if offset is 0, set to 0
 					newOffsets[consumerGroup] = kafka.NewOffset(0, oldOffset.Metadata())
-				} else if oldOffset.Offset() == sarama.OffsetOldest { // if offset is at beginning, set to beginning
-					newOffsets[consumerGroup] = kafka.NewOffset(sarama.OffsetOldest, oldOffset.Metadata())
+				} else if oldOffset.Offset() == kafka.OffsetOldest { // if offset is at beginning, set to beginning
+					newOffsets[consumerGroup] = kafka.NewOffset(kafka.OffsetOldest, oldOffset.Metadata())
 				} else if oldOffset.Offset() <= p.StartOffset() { // if offset is at or before first message, set it to first message
 					newOffsets[consumerGroup] = kafka.NewOffset(newTopicStart, oldOffset.Metadata())
-				} else if oldOffset.Offset() == sarama.OffsetNewest { // if offset is at the end, set to the end
-					newOffsets[consumerGroup] = kafka.NewOffset(sarama.OffsetNewest, oldOffset.Metadata())
+				} else if oldOffset.Offset() == kafka.OffsetNewest { // if offset is at the end, set to the end
+					newOffsets[consumerGroup] = kafka.NewOffset(kafka.OffsetNewest, oldOffset.Metadata())
 				} else if oldOffset.Offset() >= p.EndOffset() { // if offset is after last message, set it to last message + 1
 					newOffsets[consumerGroup] = kafka.NewOffset(newTopicEnd, oldOffset.Metadata())
 				} else {

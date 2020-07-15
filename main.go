@@ -31,8 +31,19 @@ func main() {
 		Validate: utils.DataDirValidate,
 	})
 
-	backupCmd := p.NewCommand("backup", "Create a point-in-time snapshot of Apache Kafka data")
+	ignoreMissingTopicsFlag := p.Flag("", "ignore-missing-topics", &argparse.Options{
+		Required: false,
+		Help:     "Don't fail if topic name was provided in the arguments, but not found in cluster, print warning instead. Only used when creating snapshot",
+		Default:  false,
+	})
+
+	createCmd := p.NewCommand("create", "Create a point-in-time snapshot of Apache Kafka data")
 	restoreCmd := p.NewCommand("restore", "Restore a point-in-time snapshot of Apache Kafka data")
+
+	// Optional arguments
+	opts := &utils.Options{
+		IgnoreMissingTopics: *ignoreMissingTopicsFlag,
+	}
 
 	err := p.Parse(os.Args)
 	if err != nil {
@@ -43,10 +54,10 @@ func main() {
 	topics := utils.SplitCommaString(*topicsString)
 	dataDir := *dataDirString
 
-	if backupCmd.Happened() {
-		backup(brokers, topics, dataDir)
+	if createCmd.Happened() {
+		create(brokers, topics, dataDir, opts)
 	} else if restoreCmd.Happened() {
-		restore(brokers, topics, dataDir)
+		restore(brokers, topics, dataDir, opts)
 	} else {
 		log.Fatal("A valid sub-command is required check -h|--help for available sub-commands")
 	}
