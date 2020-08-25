@@ -1,9 +1,9 @@
 module ksnap
 
-go 1.14
+go 1.15
 
 require (
-	github.com/Shopify/sarama v1.26.5-0.20200810201100-25aedae6c37b
+	github.com/Shopify/sarama v1.27.0
 	github.com/akamensky/argparse v1.2.1
 	github.com/akamensky/go-log v0.0.0-20190317130412-dca3c8eb40cf
 	github.com/confluentinc/confluent-kafka-go v1.4.2

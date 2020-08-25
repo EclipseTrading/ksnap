@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"github.com/Shopify/sarama"
+	"log"
+	"os"
 )
 
 type Client interface {
@@ -29,6 +31,9 @@ func (c *client) Topic(name string) Topic {
 }
 
 func NewClient(brokers []string) (Client, error) {
+	// TODO: remove
+	sarama.Logger = log.New(os.Stdout, "[Sarama] ", log.LstdFlags)
+
 	var err error
 
 	c := new(client)
