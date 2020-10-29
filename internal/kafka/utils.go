@@ -5,12 +5,13 @@ import "github.com/Shopify/sarama"
 func getKafkaConfig() *sarama.Config {
 	// Common settings
 	config := sarama.NewConfig()
-	config.Version = sarama.V2_4_0_0
+	config.Version = sarama.V2_6_0_0
 	config.ClientID = "ksnap"
 
 	// Consumer settings
 	config.Consumer.Offsets.AutoCommit.Enable = false
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Return.Errors = false
 
 	// Producer settings
 	config.Producer.Partitioner = sarama.NewManualPartitioner
