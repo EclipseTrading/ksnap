@@ -11,8 +11,7 @@ func getKafkaConfig() *sarama.Config {
 	// Consumer settings
 	config.Consumer.Offsets.AutoCommit.Enable = false
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
-	// TODO: disable
-	config.Consumer.Return.Errors = true
+	config.Consumer.Return.Errors = false
 
 	// Producer settings
 	config.Producer.Partitioner = sarama.NewManualPartitioner

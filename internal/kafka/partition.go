@@ -103,14 +103,6 @@ func (p *partition) ReadMessages() <-chan message.Message {
 			panic(err)
 		}
 
-		// TODO: remove
-		// collect errors
-		go func() {
-			for err := range pc.Errors() {
-				log.Errorf("Consumer error: %s", err.Error())
-			}
-		}()
-
 		lastOffset := p.EndOffset() - 1
 		for kafkaMessage := range pc.Messages() {
 			msgHeaders := make([]message.Header, len(kafkaMessage.Headers))
