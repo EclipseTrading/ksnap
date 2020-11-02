@@ -11,7 +11,7 @@ usage: ksnap <Command> [-h|--help] [-b|--brokers "<value>"] -t|--topic
 
 Commands:
 
-  backup   Create point-in-time snapshot of Kafka data
+  create   Create point-in-time snapshot of Kafka data
   restore  Restore point-in-time snapshot of Kafka data to cluster
 
 Arguments:
