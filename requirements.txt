@@ -1,0 +1,2 @@
+-i https://nexus3.eclipseoptions.com/repository/pypi/simple
+confluent-kafka==1.2.0
