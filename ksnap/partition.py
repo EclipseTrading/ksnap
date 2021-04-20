@@ -1,14 +1,22 @@
-# Read/write partition
+"""Read/write partition
+"""
+from ksnap.message import Message
 import sqlite3
 
-from typing import Any, List
+from dataclasses import dataclass
+from typing import List
 
 
+class PartitionFileReadError(Exception):
+    pass
+
+
+@dataclass
 class Partition:
-    def __init__(self, topic: str, name: int, messages: List[Any]):
-        self.topic = topic
-        self.name = name
-        self.messages = messages
+
+    topic: str
+    name: int
+    messages: List[Message]
 
     def to_file(self, db_file_path: str):
         conn = sqlite3.connect(db_file_path)
@@ -26,25 +34,33 @@ class Partition:
         create_table_query = (
             "CREATE TABLE IF NOT EXISTS data "
             "(offset INTEGER PRIMARY KEY, "
-            "key BLOB NOT NULL, message BLOB)"
+            "key BLOB NOT NULL, "
+            "message BLOB, "
+            "timestamp INTEGER, "
+            "headers TEXT)"
         )
         cursor.execute(create_table_query)
         conn.commit()
-        cursor.executemany("INSERT INTO data VALUES(?,?,?);", self.messages)
+        cursor.executemany("INSERT INTO data VALUES(?,?,?,?,?);",
+                           [m.to_row() for m in self.messages])
         conn.commit()
         conn.close()
 
     @classmethod
     def from_file(cls, db_file_path: str):
-        conn = sqlite3.connect(db_file_path)
-        cursor = conn.cursor()
-        # read metadata
-        metadata_query = "SELECT * FROM metadata LIMIT 1"
-        cursor.execute(metadata_query)
-        topic, name = cursor.fetchone()
-        # read messages
-        message_query = "SELECT * FROM data"
-        cursor.execute(message_query)
-        rows = cursor.fetchall()
-        conn.close()
-        return cls(topic, name, rows)
+        try:
+            conn = sqlite3.connect(db_file_path)
+            cursor = conn.cursor()
+            # read metadata
+            metadata_query = "SELECT * FROM metadata LIMIT 1"
+            cursor.execute(metadata_query)
+            topic, name = cursor.fetchone()
+            # read messages
+            message_query = "SELECT * FROM data"
+            cursor.execute(message_query)
+            rows = cursor.fetchall()
+        except Exception as exc:
+            raise PartitionFileReadError from exc
+        finally:
+            conn.close()
+        return cls(topic, name, [Message.from_row(*r) for r in rows])

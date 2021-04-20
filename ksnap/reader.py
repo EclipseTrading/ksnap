@@ -1,25 +1,29 @@
-# Read topic messages from kafka
+"""Read topic messages from kafka
+"""
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import List
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Tuple
 
 from confluent_kafka import Consumer, KafkaException
+
+from ksnap.message import Message
 
 logger = logging.getLogger(__name__)
 
 
 class KafkaReader(ABC):
     @abstractmethod
-    def subscribe():
+    def subscribe(self, topics: List[str]):
         pass
 
     @abstractmethod
-    def read():
+    def read(self):
         pass
 
     @abstractmethod
-    def close():
+    def close(self):
         pass
 
 
@@ -34,34 +38,43 @@ class ConfluentKafkaReader(KafkaReader):
         }
         self.consumer = Consumer(self.config, logger=logger)
 
-    def subscribe(self, topics):
+    def subscribe(self, topics: List[str]):
         self.consumer.subscribe(
             topics,
         )
 
-    def read(self):
+    def read(self, timeout: int = 0) -> Dict[Tuple[str, int], List[Message]]:
         msg_count = 0
-        msg_dict = defaultdict(list)
+        msg_dict: Dict[Tuple[str, int], List[Any]] = defaultdict(list)
         try:
             counter = 0
-            while True and counter < 5:
+            start_time = datetime.now()
+            while counter < 2:
                 msg = self.consumer.poll(timeout=5.0)
                 if msg is None:
                     counter += 1
                     continue
+                counter = 0
                 if msg.error():
                     raise KafkaException(msg.error())
-                msg_dict[(msg.topic(), msg.partition())].append(
-                    (msg.offset(), msg.key(), msg.value())
-                )
+                message = Message(msg.offset(), msg.key(), msg.value(),
+                                  msg.timestamp()[1], msg.headers())
+                msg_dict[(msg.topic(), msg.partition())].append(message)
                 msg_count += 1
                 if not msg_count % 100000:
-                    logger.debug(f"Read {msg_count} messages so far.")
-            return msg_dict
+                    logger.debug(
+                        f"So far read {msg_count} messages from kafka"
+                    )
+                if datetime.now() - start_time > timedelta(seconds=timeout):
+                    logger.info(
+                        f'Reached timeout: {timeout}s for reading messages.')
+                    break
+            logger.info("Done with reading")
         except KeyboardInterrupt:
             logger.info("%% Aborted by user\n")
         finally:
-            self.close()
+            self.consumer.close()
+        return msg_dict
 
     def close(self):
         self.consumer.close()
