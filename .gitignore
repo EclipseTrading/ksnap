@@ -131,3 +131,4 @@ cov.xml
 ui_flask/static/*
 tmp/
 notebooks/
+backup/
