@@ -59,4 +59,5 @@ setup(
             "ksnap = ksnap.__main__:main"
         ]
     },
+    license_files = ('LICENSE',),
 )
