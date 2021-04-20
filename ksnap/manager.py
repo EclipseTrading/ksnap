@@ -46,7 +46,7 @@ class KsnapManager:
         offsets, partitions = data_flow_manager.read(self.config.topics)
 
         def func(partition):
-            logger.info(f'Write {len(partition.messages)} messages'
+            logger.debug(f'Write {len(partition.messages)} messages'
                         f'to topic: {partition.topic} '
                         f'partition: {partition.name} in kafka broker')
             writer = ConfluentKafkaWriter(self.config.brokers)
