@@ -3,6 +3,7 @@
 from ksnap.message import Message
 import sqlite3
 
+from dataclasses import dataclass
 from typing import List
 
 
@@ -10,12 +11,12 @@ class PartitionFileReadError(Exception):
     pass
 
 
+@dataclass
 class Partition:
-    def __init__(self, topic: str, name: int,
-                 messages: List[Message]):
-        self.topic = topic
-        self.name = name
-        self.messages = messages
+
+    topic: str
+    name: int
+    messages: List[Message]
 
     def to_file(self, db_file_path: str):
         conn = sqlite3.connect(db_file_path)

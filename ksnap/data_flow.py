@@ -37,12 +37,13 @@ class DataFlowManager:
             # TODO: Consider using filename as filter or Write required
             # metadata about filename and topic/partition in one main sqlite3
             # file.
-            if not topics or partition.topic not in topics:
+            if topics and partition.topic not in topics:
                 continue
             partitions.append(partition)
         offset_manager = OffsetManager.from_file(self.offset_file_path)
         if topics:
             offsets = [o for o in offset_manager.offsets if o.topic in topics]
+        offsets = offset_manager.offsets
         return (offsets, partitions)
 
     def write(self, offsets: List[Offset],
