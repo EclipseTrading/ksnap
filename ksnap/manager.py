@@ -32,16 +32,16 @@ class KsnapManager:
             broker_topic_names = [
                 topic.topic for topic in
                 reader.consumer.list_topics().topics.values()]
-            filtered_topics = []
+            topics = []
             for t in self.config.topics:
                 if t not in broker_topic_names:
                     logger.debug(f'Ignore topic {t} since it is '
                                  'missing in kafka broker')
                     continue
-                filtered_topics.append(t)
-            reader.subscribe(filtered_topics)
+                topics.append(t)
         else:
-            reader.subscribe(self.config.topics)
+            topics = self.config.topics
+        reader.subscribe(topics)
         msg_dict = reader.read(timeout=READER_TIMEOUT)
         partitions = [
             Partition(topic, partition_no, msgs)
@@ -49,7 +49,7 @@ class KsnapManager:
         ]
         # Fetch consumer group offsets
         admin_client = ConfluentAdminClient(self.config.brokers)
-        offsets = admin_client.get_consumer_offsets(self.config.topics)
+        offsets = admin_client.get_consumer_offsets(topics)
         # Write topic messages and consumer offsets to disk
         data_flow_manager = DataFlowManager(self.config.data)
         data_flow_manager.write(offsets, partitions)
