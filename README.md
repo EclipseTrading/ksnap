@@ -4,7 +4,7 @@ Create and restore point-in-time snapshots of data stored in Apache Kafka.
 ## Usage
 ```
 $ ksnap --help
-usage: ksnap <Command> [-h|--help] [-b|--brokers "<value>"] -t|--topic
+usage: ksnap <Command> [-h|--help] [-b|--brokers "<value>"] -t|--topics
              "<value>" -d|--data "<value>"
 
              Create and restore point in time snapshots of Kafka data
@@ -19,7 +19,7 @@ Arguments:
   -h  --help     Print help information
   -b  --brokers  Comma-separated list of brokers in format `host:port'.
                  Default: localhost:9092
-  -t  --topic    Comma-separated list of topics
+  -t  --topics    Comma-separated list of topics
   -d  --data     Directory where this tool will store data or read from
 ```
 
@@ -37,14 +37,10 @@ $ ksnap restore -b kafka1:9092,kafka2:9092 -t Topic1,Topic2 -d ./backupDir
 ```
 
 ## Install
-Get latest binary version for your architecture from [releases page](https://github.com/EclipseTrading/ksnap/releases/latest).
-If your desired architecture is not available you can see below how to build from source.
-
-## Build
-You should use Go compiler 1.14 or newer
+You should use Python 3.6 or above
 
 ```
 $ git clone https://github.com/EclipseTrading/ksnap.git
 $ cd ksnap
-$ go install .
+$ pip install .
 ```
