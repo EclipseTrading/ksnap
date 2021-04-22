@@ -10,6 +10,9 @@ def test_knsap_config_from_cli_args():
         "CBBCAutomationInstrumentFitPOParameters,CBBCAutomationInstrumentPOState,CBBCAutomationStrategyParameters",
         "-d",
         "backup/test_3",
+        "--ignore-missing-topics",
+        "--threads",
+        "32"
     ]
     config = KsnapConfig.from_cli_args(l)
     assert config
@@ -25,3 +28,5 @@ def test_knsap_config_from_cli_args():
         "CBBCAutomationStrategyParameters",
     ]
     assert config.data == "backup/test_3"
+    assert config.ignore_missing_topics
+    assert config.threads == 32

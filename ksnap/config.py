@@ -13,6 +13,7 @@ class KsnapConfig:
     topics: List[str]
     data: str
     threads: int
+    ignore_missing_topics: bool
 
     @classmethod
     def from_cli_args(cls, cli_args: Optional[List[str]] = None):
@@ -23,7 +24,8 @@ class KsnapConfig:
             brokers=args.brokers.split(','),
             topics=args.topics.split(','),
             data=args.data,
-            threads=args.threads
+            threads=args.threads,
+            ignore_missing_topics=args.ignore_missing_topics,
         )
 
     @staticmethod
@@ -56,5 +58,10 @@ class KsnapConfig:
             help='No of threads using for writing messages to Kafka',
             default=8,
             type=int
+        )
+        parser.add_argument(
+            '--ignore-missing-topics',
+            help='Ignore missing topics in Kafka broker',
+            action='store_true'
         )
         return parser
