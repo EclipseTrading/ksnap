@@ -36,5 +36,7 @@ def test_data_flow_manager_read(tmpdir):
                  ]
     data_flow_manager.write(offsets, partitions)
     from_disk_offsets, from_disk_partitions = data_flow_manager.read()
+    from_disk_partitions.sort(key=lambda p: (p.topic, p.name))
+    partitions.sort(key=lambda p: (p.topic, p.name))
     assert from_disk_offsets == offsets
     assert from_disk_partitions == partitions
