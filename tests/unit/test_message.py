@@ -2,10 +2,10 @@ from ksnap.message import Message
 
 
 def test_message_to_row():
-    msg = Message(100, 'key_1', 'val_1', 123456789, [('key_1', b'val_1')])
+    msg = Message(100, 'key_1', 'val_1', 123456789, [('key_1', b'val_1'), ('key_2', None)])
     row = msg.to_row()
     assert len(row) == 5
-    assert row == (100, 'key_1', 'val_1', 123456789, '[{"key": "key_1", "val": "dmFsXzE="}]')
+    assert row == (100, 'key_1', 'val_1', 123456789, '[{"key": "key_1", "val": "dmFsXzE="}, {"key": "key_2", "val": null}]')
 
 
 def test_message_from_row():
@@ -16,3 +16,11 @@ def test_message_from_row():
     assert msg.value == 'val_1'
     assert msg.timestamp == 123456789
     assert msg.headers is None
+
+    msg = Message.from_row(100, 'key_1', 'val_1', 123456789, '[{"key": "key_1", "val": "dmFsXzE="}, {"key": "key_2", "val": null}]')
+    assert msg
+    assert msg.offset == 100
+    assert msg.key == 'key_1'
+    assert msg.value == 'val_1'
+    assert msg.timestamp == 123456789
+    assert msg.headers == [('key_1', b'val_1'), ('key_2', None)]
