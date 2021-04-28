@@ -36,5 +36,5 @@ def test_confluent_kafka_writer_write(confluent_kafka_writer: ConfluentKafkaWrit
     sleep(5)
     confluent_kafka_reader = ConfluentKafkaReader(['localhost'])
     confluent_kafka_reader.subscribe(['Topic1'])
-    partition_message_dict = confluent_kafka_reader.read()
+    partition_message_dict = confluent_kafka_reader.read(timeout=10)
     assert partition_message_dict

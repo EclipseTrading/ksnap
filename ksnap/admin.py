@@ -4,6 +4,7 @@ import logging
 from abc import abstractmethod
 from collections import defaultdict
 from typing import DefaultDict, Dict, List
+from multiprocessing.pool import ThreadPool
 import re
 
 from confluent_kafka import Consumer, TopicPartition
@@ -50,18 +51,23 @@ class ConfluentAdminClient:
         return [g.id for g in consumer_groups]
 
     def get_consumer_offsets(
-        self, topics: List[str], ignore_group_regex: str = IGNORE_GROUP_REGEX
+        self, topics: List[str], ignore_group_regex: str = IGNORE_GROUP_REGEX,
+        no_of_threads: int = 8
             ) -> List[Offset]:
         broker_topics = self.client.list_topics().topics
         partitions = []
         for topic_name in topics:
             partitions.extend([TopicPartition(topic_name, k)
                                for k in broker_topics[topic_name].partitions])
-        offsets = []
+        consumer_groups = []
         for consumer_group in self.get_consumer_groups():
             if re.findall(ignore_group_regex, consumer_group):
                 logger.debug(f'Ignoring consumer group: {consumer_group}')
                 continue
+            consumer_groups.append(consumer_group)
+
+        def func(consumer_group) -> List[Offset]:
+            offsets = []
             consumer = Consumer({**self.config, 'group.id': consumer_group})
             for tp in consumer.committed(partitions, timeout=10):
                 if tp.offset == -1001:
@@ -69,6 +75,11 @@ class ConfluentAdminClient:
                 offset = Offset(consumer_group, tp.topic,
                                 tp.partition, tp.offset)
                 offsets.append(offset)
+            return offsets
+        pool = ThreadPool(no_of_threads)
+        offsets: List[Offset] = []
+        for _offsets in pool.map(func, consumer_groups):
+            offsets.extend(_offsets)
         return offsets
 
     def set_consumer_offsets(self, offsets: List[Offset]):

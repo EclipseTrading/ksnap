@@ -31,7 +31,7 @@ class DataFlowManager:
                 continue
             file_path = os.path.join(self.partition_file_dir, file_name)
             partition = Partition.from_file(file_path)
-            logger.debug(f'Read {len(partition.messages)} for topic: '
+            logger.debug(f'Read {len(partition.messages)} messages for topic: '
                          f'{partition.topic} partition: {partition.name} '
                          'from disk')
             # TODO: Consider using filename as filter or Write required

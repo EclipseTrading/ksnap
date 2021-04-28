@@ -14,6 +14,7 @@ class KsnapConfig:
     data: str
     threads: int
     ignore_missing_topics: bool
+    consumer_timeout: int
 
     @classmethod
     def from_cli_args(cls, cli_args: Optional[List[str]] = None):
@@ -26,6 +27,7 @@ class KsnapConfig:
             data=args.data,
             threads=args.threads,
             ignore_missing_topics=args.ignore_missing_topics,
+            consumer_timeout=args.consumer_timeout
         )
 
     @staticmethod
@@ -63,5 +65,11 @@ class KsnapConfig:
             '--ignore-missing-topics',
             help='Ignore missing topics in Kafka broker',
             action='store_true'
+        )
+        parser.add_argument(
+            '--consumer-timeout',
+            help='Timeout in seconds for consuming topics',
+            default=300,
+            type=int
         )
         return parser

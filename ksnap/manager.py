@@ -11,7 +11,6 @@ from ksnap.partition import Partition
 from ksnap.reader import ConfluentKafkaReader
 from ksnap.writer import ConfluentKafkaWriter
 
-READER_TIMEOUT = 300
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +41,7 @@ class KsnapManager:
         else:
             topics = self.config.topics
         reader.subscribe(topics)
-        msg_dict = reader.read(timeout=READER_TIMEOUT)
+        msg_dict = reader.read(timeout=self.config.consumer_timeout)
         partitions = [
             Partition(topic, partition_no, msgs)
             for (topic, partition_no), msgs in msg_dict.items()
