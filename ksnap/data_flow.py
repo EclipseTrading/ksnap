@@ -49,6 +49,8 @@ class DataFlowManager:
     def write(self, offsets: List[Offset],
               partitions: List[Partition]):
         os.makedirs(self.partition_file_dir, exist_ok=True)
+        logger.info(f'Write {len(partitions)} partitions '
+                    f'to {self.partition_file_dir}')
         for partition in partitions:
             file_path = os.path.join(
                 self.partition_file_dir,
@@ -58,7 +60,5 @@ class DataFlowManager:
                 f'from topic: {partition.topic} '
                 f'partition: {partition.name} to disk')
             partition.to_file(file_path)
-        logger.debug(
-            f'Write {len(offsets)} '
-            'consumer group offsets to disk')
+        logger.info(f'Write {len(offsets)} consumer group offsets to disk')
         OffsetManager(offsets).to_file(self.offset_file_path)

@@ -82,9 +82,9 @@ class ConfluentKafkaReader(KafkaReader):
 
     @staticmethod
     def generate_consumer_report(offset_dict, msg_dict, done_partitions):
-        logger.info(f'Done consuming from partitions:')
+        logger.debug(f'Done consuming from partitions:')
         for topic, partition in done_partitions:
-            logger.info(f'\t- topic: {topic} partition: {partition}')
+            logger.debug(f'\t- topic: {topic} partition: {partition}')
         for (topic, partition), offset in offset_dict.items():
             if (topic, partition) in done_partitions:
                 continue
@@ -139,7 +139,7 @@ class ConfluentKafkaReader(KafkaReader):
         except KeyboardInterrupt:
             logger.info("%% Aborted by user\n")
         finally:
-            self.consumer.close()
+            self.close()
         logger.info("Done with reading")
         ConfluentKafkaReader.generate_consumer_report(
             offset_dict, msg_dict, done_partitions)
