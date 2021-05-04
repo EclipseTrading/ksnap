@@ -48,7 +48,8 @@ class KsnapManager:
         ]
         # Fetch consumer group offsets
         admin_client = ConfluentAdminClient(self.config.brokers)
-        offsets = admin_client.get_consumer_offsets(topics)
+        offsets = admin_client.get_consumer_offsets(
+            topics, no_of_threads=self.config.threads)
         # Write topic messages and consumer offsets to disk
         data_flow_manager = DataFlowManager(self.config.data)
         data_flow_manager.write(offsets, partitions)
