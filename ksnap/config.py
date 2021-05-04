@@ -56,15 +56,15 @@ class KsnapConfig:
             required=True,
         )
         parser.add_argument(
-            '--threads',
-            help='No of threads using for writing messages to Kafka',
-            default=1,
-            type=int
-        )
-        parser.add_argument(
             '--ignore-missing-topics',
             help='Ignore missing topics in Kafka broker',
             action='store_true'
+        )
+        parser.add_argument(
+            '--threads',
+            help='No of threads using for writing messages to Kafka',
+            default=8,
+            type=int
         )
         parser.add_argument(
             '--consumer-timeout',

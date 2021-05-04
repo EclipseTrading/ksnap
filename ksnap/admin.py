@@ -43,6 +43,15 @@ class ConfluentAdminClient:
         }
         self.client = AdminClient(self.config)
 
+    @property
+    def consumer_config(self):
+        return {
+            **self.config,
+            "max.poll.interval.ms": 10000,
+            "auto.offset.reset": "smallest",
+            "enable.auto.commit": False,
+        }
+
     @staticmethod
     def _group_offsets(
             offsets: List[Offset]) -> Dict[str, List[Offset]]:
@@ -109,7 +118,7 @@ class ConfluentAdminClient:
             offsets: List[Offset] = []
             for cg in consumer_groups:
                 _offsets = ConfluentAdminClient._get_offsets(
-                    cg, partitions, self.config,)
+                    cg, partitions, self.consumer_config,)
                 offsets.extend(_offsets)
             return offsets
         return self._threaded_get_offsets(partitions, consumer_groups,
@@ -119,7 +128,8 @@ class ConfluentAdminClient:
         grouped_offsets = ConfluentAdminClient._group_offsets(
             offsets)
         for consumer_group, _offsets in grouped_offsets.items():
-            consumer = ck.Consumer({**self.config, 'group.id': consumer_group})
+            consumer = ck.Consumer({**self.consumer_config,
+                                    'group.id': consumer_group})
             tps = [ck.TopicPartition(o.topic, o.partition, o.value)
                    for o in _offsets]
             logger.info(f'Set {len(tps)} offsets for consumer '

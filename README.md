@@ -4,23 +4,25 @@ Create and restore point-in-time snapshots of data stored in Apache Kafka.
 ## Usage
 ```
 $ ksnap --help
-usage: ksnap <Command> [-h|--help] [-b|--brokers "<value>"] -t|--topics
-             "<value>" -d|--data "<value>"
+usage: __main__.py [-h] -b BROKERS -t TOPICS -d DATA [--ignore-missing-topics]
+                   [--threads THREADS] [--consumer-timeout CONSUMER_TIMEOUT]
+                   {backup,restore}
 
-             Create and restore point in time snapshots of Kafka data
+positional arguments:
+  {backup,restore}
 
-Commands:
-
-  backup   Create point-in-time snapshot of Kafka data
-  restore  Restore point-in-time snapshot of Kafka data to cluster
-
-Arguments:
-
-  -h  --help     Print help information
-  -b  --brokers  Comma-separated list of brokers in format `host:port'.
-                 Default: localhost:9092
-  -t  --topics    Comma-separated list of topics
-  -d  --data     Directory where this tool will store data or read from
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BROKERS, --brokers BROKERS
+                        Comma-separated list of brokers in format `host:port`.
+  -t TOPICS, --topics TOPICS
+                        Comma-separated list of topics
+  -d DATA, --data DATA  Directory where this tool will store data or read from
+  --ignore-missing-topics
+                        Ignore missing topics in Kafka broker
+  --threads THREADS     No of threads using for reading/writing Kafka messages
+  --consumer-timeout CONSUMER_TIMEOUT
+                        Timeout in seconds for consuming topics
 ```
 
 Create point-in-time snapshot of data in topics Topic1 and Topic2 using:
@@ -38,9 +40,6 @@ $ ksnap restore -b kafka1:9092,kafka2:9092 -t Topic1,Topic2 -d ./backupDir
 
 ## Install
 You should use Python 3.6 or above
-
 ```
-$ git clone https://github.com/EclipseTrading/ksnap.git
-$ cd ksnap
-$ pip install .
+$ pip install git+https://github.com/EclipseTrading/ksnap.git
 ```
