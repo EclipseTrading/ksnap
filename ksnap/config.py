@@ -58,7 +58,7 @@ class KsnapConfig:
         parser.add_argument(
             '--threads',
             help='No of threads using for writing messages to Kafka',
-            default=8,
+            default=1,
             type=int
         )
         parser.add_argument(

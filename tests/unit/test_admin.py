@@ -52,3 +52,6 @@ def test_confluent_admin_client_get_consumer_offsets(monkeypatch):
     confluent_admin_client.client = MockedAdmin()
     offsets = confluent_admin_client.get_consumer_offsets(['Topic1'])
     assert offsets
+    offsets = confluent_admin_client.get_consumer_offsets(['Topic1'],
+                                                          no_of_threads=2)
+    assert offsets

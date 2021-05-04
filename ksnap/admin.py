@@ -65,28 +65,8 @@ class ConfluentAdminClient:
         consumer.close()
         return offsets
 
-    def get_consumer_groups(self) -> List[str]:
-        consumer_groups = self.client.list_groups()
-        return [g.id for g in consumer_groups]
-
-    def get_consumer_offsets(
-        self, topics: List[str], ignore_group_regex: str = IGNORE_GROUP_REGEX,
-        no_of_threads: int = 8
-            ) -> List[Offset]:
-        broker_topics = self.client.list_topics().topics
-        partitions = []
-        for topic_name in topics:
-            partitions.extend([ck.TopicPartition(topic_name, k)
-                               for k in broker_topics[topic_name].partitions])
-        consumer_groups = []
-        logger.info('Fetch consumer groups from broker')
-        for consumer_group in self.get_consumer_groups():
-            if re.findall(ignore_group_regex, consumer_group):
-                logger.debug(f'Ignoring consumer group: {consumer_group}')
-                continue
-            consumer_groups.append(consumer_group)
-        logger.info(f'Fetch consumer offsets for {len(consumer_groups)} '
-                    'consumer groups')
+    def _threaded_get_offsets(self, partitions, consumer_groups,
+                              no_of_threads) -> List[Offset]:
         offsets: List[Offset] = []
         with ThreadPoolExecutor(max_workers=no_of_threads) as executor:
             futures = {executor.submit(ConfluentAdminClient._get_offsets,
@@ -102,6 +82,38 @@ class ConfluentAdminClient:
                     raise ConsumerOffsetError(msg) from exc
                 offsets.extend(_offsets)
         return offsets
+
+    def get_consumer_groups(self) -> List[str]:
+        consumer_groups = self.client.list_groups()
+        return [g.id for g in consumer_groups]
+
+    def get_consumer_offsets(
+        self, topics: List[str], ignore_group_regex: str = IGNORE_GROUP_REGEX,
+        no_of_threads: int = 1
+            ) -> List[Offset]:
+        broker_topics = self.client.list_topics().topics
+        partitions = []
+        for topic_name in topics:
+            partitions.extend([ck.TopicPartition(topic_name, k)
+                               for k in broker_topics[topic_name].partitions])
+        consumer_groups = []
+        logger.info('Fetch consumer groups from broker')
+        for consumer_group in self.get_consumer_groups():
+            if re.findall(ignore_group_regex, consumer_group):
+                logger.debug(f'Ignoring consumer group: {consumer_group}')
+                continue
+            consumer_groups.append(consumer_group)
+        logger.info(f'Fetch consumer offsets for {len(consumer_groups)} '
+                    'consumer groups')
+        if no_of_threads == 1:
+            offsets: List[Offset] = []
+            for cg in consumer_groups:
+                _offsets = ConfluentAdminClient._get_offsets(
+                    cg, partitions, self.config,)
+                offsets.extend(_offsets)
+            return offsets
+        return self._threaded_get_offsets(partitions, consumer_groups,
+                                          no_of_threads)
 
     def set_consumer_offsets(self, offsets: List[Offset]):
         grouped_offsets = ConfluentAdminClient._group_offsets(
