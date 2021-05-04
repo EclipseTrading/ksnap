@@ -23,8 +23,11 @@ def main():
     config = KsnapConfig.from_cli_args()
     logger.info(f'Config: {config}')
     ksnap_manager = KsnapManager(config)
-    ksnap_manager.run()
-    return
+    try:
+        ksnap_manager.run()
+    except Exception as exc:
+        logger.exception(exc)
+        raise exc
 
 
 if __name__ == "__main__":

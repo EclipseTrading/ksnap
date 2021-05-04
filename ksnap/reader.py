@@ -150,4 +150,5 @@ class ConfluentKafkaReader(KafkaReader):
         return msg_dict
 
     def close(self):
-        self.consumer.close()
+        #self.consumer.close()
+        pass
