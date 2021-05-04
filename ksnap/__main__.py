@@ -1,7 +1,7 @@
 """cli interface lives here
 """
 import logging
-import sys
+
 from ksnap.config import KsnapConfig
 from ksnap.manager import KsnapManager
 
@@ -23,12 +23,8 @@ def main():
     config = KsnapConfig.from_cli_args()
     logger.info(f'Config: {config}')
     ksnap_manager = KsnapManager(config)
-    try:
-        ksnap_manager.run()
-    except Exception as exc:
-        logger.exception(exc)
-        raise exc
+    ksnap_manager.run()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

@@ -115,7 +115,6 @@ class ConfluentKafkaReader(KafkaReader):
                     logger.info('Done consuming from '
                                 f'{len(done_partitions)} partitions.')
                     break
-                
                 msgs = self.consumer.consume(num_messages=1000, timeout=60)
                 for msg in msgs:
                     if msg is None:
