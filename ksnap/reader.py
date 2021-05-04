@@ -115,30 +115,31 @@ class ConfluentKafkaReader(KafkaReader):
                     logger.info('Done consuming from '
                                 f'{len(done_partitions)} partitions.')
                     break
-                msgs = self.consumer.consume(num_messages=1000, timeout=60)
-                for msg in msgs:
-                    if msg is None:
-                        continue
-                    if msg.error():
-                        raise KafkaException(msg.error())
-                    # skip if partitions are marked as done
-                    if (msg.topic(), msg.partition()) in done_partitions:
-                        continue
-                    # skip messages over required offsets
-                    if ConfluentKafkaReader._check_reach_offsets(
-                            msg, offset_dict):
-                        logger.info(f'Done consuming from topic: '
-                                    f'{msg.topic()} partition: '
-                                    f'{msg.partition()}')
-                        done_partitions.add((msg.topic(), msg.partition()))
-                    message = Message(msg.offset(), msg.key(), msg.value(),
-                                    msg.timestamp()[1], msg.headers())
-                    msg_dict[(msg.topic(), msg.partition())].append(message)
-                    msg_count += 1
-                    if not msg_count % 100000:
-                        logger.debug(
-                            f"So far read {msg_count} messages from kafka"
-                        )
+                msg = self.consumer.poll(timeout=5.0)
+                if msg is None:
+                    continue
+                if msg.error():
+                    raise KafkaException(msg.error())
+                topic, partition = msg.topic(), msg.partition()
+                offset, key, value = msg.offset(), msg.key(), msg.value()
+                timestamp, headers = msg.timestamp()[1], msg.headers()
+                # skip if partitions are marked as done
+                if (topic, partition) in done_partitions:
+                    continue
+                # skip messages over required offsets
+                if ConfluentKafkaReader._check_reach_offsets(
+                        msg, offset_dict):
+                    logger.info(f'Done consuming from topic: '
+                                f'{topic} partition: '
+                                f'{partition}')
+                    done_partitions.add((topic, partition))
+                message = Message(offset, key, value, timestamp, headers)
+                msg_dict[(topic, partition)].append(message)
+                msg_count += 1
+                if not msg_count % 100000:
+                    logger.debug(
+                        f"So far read {msg_count} messages from kafka"
+                    )
         except KeyboardInterrupt:
             logger.info("%% Aborted by user\n")
         finally:
