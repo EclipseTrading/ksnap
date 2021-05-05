@@ -13,5 +13,6 @@ def test_get_consumer_groups(confluent_admin_client: ConfluentAdminClient):
 
 
 def test_get_consumer_offsets(confluent_admin_client: ConfluentAdminClient):
-    offsets = confluent_admin_client.get_consumer_offsets(['CBBCAutomationInstrumentFitPOParameters'])
+    offsets = confluent_admin_client.get_consumer_offsets(
+        ['CBBCAutomationInstrumentFitPOParameters'], no_of_threads=8)
     assert offsets
