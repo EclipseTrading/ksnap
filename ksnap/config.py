@@ -15,6 +15,7 @@ class KsnapConfig:
     threads: int
     ignore_missing_topics: bool
     consumer_timeout: int
+    kafka_library: str
 
     @classmethod
     def from_cli_args(cls, cli_args: Optional[List[str]] = None):
@@ -27,7 +28,8 @@ class KsnapConfig:
             data=args.data,
             threads=args.threads,
             ignore_missing_topics=args.ignore_missing_topics,
-            consumer_timeout=args.consumer_timeout
+            consumer_timeout=args.consumer_timeout,
+            kafka_library=args.kafka_library,
         )
 
     @staticmethod
@@ -71,5 +73,10 @@ class KsnapConfig:
             help='Timeout in seconds for consuming topics',
             default=300,
             type=int
+        )
+        parser.add_argument(
+            '--kafka-library',
+            help='Which kafka library to use for reading messages',
+            default='kafka-python',
         )
         return parser

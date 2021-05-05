@@ -1,51 +1,30 @@
 """Read topic messages from kafka
 """
 import logging
-from abc import ABC, abstractmethod
+
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Set, Tuple
 
 from confluent_kafka import Consumer, KafkaException, TopicPartition
 
 from ksnap.message import Message
+from ksnap.reader.base import KafkaReader
 
 logger = logging.getLogger(__name__)
-
-
-class KafkaReader(ABC):
-    @abstractmethod
-    def subscribe(self, topics: List[str]):
-        pass
-
-    @abstractmethod
-    def read(self):
-        pass
-
-    @abstractmethod
-    def close(self):
-        pass
 
 
 class ConfluentKafkaReader(KafkaReader):
     def __init__(self, kafka_hosts: List[str]):
         self.config = {
             "bootstrap.servers": ",".join(kafka_hosts),
-            "group.id": "TestConnectivityClient2",
+            "group.id": "KsnapClientGroup",
             "max.poll.interval.ms": 10000,
-            "auto.offset.reset": "smallest",
+            "auto.offset.reset": "earliest",
             "enable.auto.commit": False,
         }
         self.consumer = Consumer(self.config, logger=logger)
         self.topics: List[str] = []
-
-    @staticmethod
-    def _check_timeout(timeout: int, start_time: datetime) -> bool:
-        if not timeout:
-            return False
-        timeout_td = timedelta(seconds=timeout)
-        current_td = datetime.now() - start_time
-        return current_td > timeout_td
 
     @staticmethod
     def _check_reach_offsets(
@@ -53,13 +32,6 @@ class ConfluentKafkaReader(KafkaReader):
         if (msg.topic(), msg.partition()) not in offset_dict:
             return True
         return offset_dict[(msg.topic(), msg.partition())] <= msg.offset()
-
-    def subscribe(self, topics: List[str]):
-        # TODO: consider having add_topics as methods
-        self.topics = topics
-        self.consumer.subscribe(
-            topics,
-        )
 
     def _get_latest_offsets(self) -> Dict[Tuple[str, int], int]:
         tps = []
@@ -80,22 +52,16 @@ class ConfluentKafkaReader(KafkaReader):
                          f'partition: {tp.partition}: {high - 1}')
         return d
 
-    @staticmethod
-    def generate_consumer_report(offset_dict, msg_dict, done_partitions):
-        logger.debug(f'Done consuming from partitions:')
-        for topic, partition in done_partitions:
-            logger.debug(f'\t- topic: {topic} partition: {partition}')
-        for (topic, partition), offset in offset_dict.items():
-            if (topic, partition) in done_partitions:
-                continue
-            if (topic, partition) not in msg_dict:
-                logger.warning(f'Did not consume from topic: {topic} '
-                               f'partition: {partition}')
-                continue
-            last_read_offset = msg_dict[(topic, partition)][-1].offset
-            logger.warning(f'Remaining messages for consumption from topic: '
-                           f'{topic} partition: {partition}: '
-                           f'{offset - last_read_offset}')
+    def list_topics(self) -> Set[str]:
+        return {topic.topic for topic in
+                self.consumer.list_topics().topics.values()}
+
+    def subscribe(self, topics: List[str]):
+        # TODO: consider having add_topics as methods
+        self.topics = topics
+        self.consumer.subscribe(
+            topics,
+        )
 
     def read(self, timeout: int = 0) -> Dict[Tuple[str, int], List[Message]]:
         msg_count = 0
@@ -150,5 +116,4 @@ class ConfluentKafkaReader(KafkaReader):
         return msg_dict
 
     def close(self):
-        #self.consumer.close()
-        pass
+        self.consumer.close()

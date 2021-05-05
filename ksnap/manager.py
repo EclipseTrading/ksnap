@@ -8,7 +8,7 @@ from ksnap.config import KsnapConfig
 from ksnap.data_flow import DataFlowManager
 from ksnap.offset import generate_new_offsets
 from ksnap.partition import Partition
-from ksnap.reader import ConfluentKafkaReader
+from ksnap.reader import ConfluentKafkaReader, PythonKafkaReader
 from ksnap.writer import ConfluentKafkaWriter
 
 logger = logging.getLogger(__name__)
@@ -25,12 +25,13 @@ class KsnapManager:
 
     def backup(self):
         # Read topic messages from kafka broker
-        reader = ConfluentKafkaReader(self.config.brokers)
+        if self.config.kafka_library == 'confluent':
+            reader = ConfluentKafkaReader(self.config.brokers)
+        else:
+            reader = PythonKafkaReader(self.config.brokers)
         if self.config.ignore_missing_topics:
             logger.debug('Filter out topics that are not in Kafka broker')
-            broker_topic_names = [
-                topic.topic for topic in
-                reader.consumer.list_topics().topics.values()]
+            broker_topic_names = reader.list_topics()
             topics = []
             for t in self.config.topics:
                 if t not in broker_topic_names:
