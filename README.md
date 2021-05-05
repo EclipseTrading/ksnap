@@ -6,6 +6,7 @@ Create and restore point-in-time snapshots of data stored in Apache Kafka.
 $ ksnap --help
 usage: __main__.py [-h] -b BROKERS -t TOPICS -d DATA [--ignore-missing-topics]
                    [--threads THREADS] [--consumer-timeout CONSUMER_TIMEOUT]
+                   [--kafka-library KAFKA_LIBRARY]
                    {backup,restore}
 
 positional arguments:
@@ -20,9 +21,11 @@ optional arguments:
   -d DATA, --data DATA  Directory where this tool will store data or read from
   --ignore-missing-topics
                         Ignore missing topics in Kafka broker
-  --threads THREADS     No of threads using for reading/writing Kafka messages
+  --threads THREADS     No of threads using for writing messages to Kafka
   --consumer-timeout CONSUMER_TIMEOUT
                         Timeout in seconds for consuming topics
+  --kafka-library KAFKA_LIBRARY
+                        Which kafka library to use for reading messages
 ```
 
 Create point-in-time snapshot of data in topics Topic1 and Topic2 using:

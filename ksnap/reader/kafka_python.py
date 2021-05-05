@@ -38,13 +38,7 @@ class PythonKafkaReader(KafkaReader):
     def subscribe(self, topics: List[str]):
         # TODO: consider having add_topics as methods
         self.topics = topics
-        tps = []
-        for t in self.consumer.topics():
-            if t not in topics:
-                continue
-            for p in self.consumer.partitions_for_topic(t):
-                tps.append(TopicPartition(t, p))
-        self.consumer.assign(tps)
+        self.consumer.subscribe(topics)
 
     def _get_latest_offsets(self) -> Dict[Tuple[str, int], int]:
         tps: List[TopicPartition] = []
