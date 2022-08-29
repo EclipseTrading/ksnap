@@ -16,10 +16,12 @@ def test_data_flow_manager_write(tmpdir):
                                            123456789, None)]),
                   Partition('topic_2', 0, [Message(0, 'key_1', 'val_1',
                                            123456789, None)]),
+                  Partition('topic_2', 1, [Message(0, None, 'val_1',
+                                           123456789, None)]),
                  ]
     data_flow_manager.write(offsets, partitions)
     assert os.path.isdir(os.path.join(tmpdir, 'partitions'))
-    assert len(os.listdir(os.path.join(tmpdir, 'partitions'))) == 3
+    assert len(os.listdir(os.path.join(tmpdir, 'partitions'))) == 4
     assert os.path.isfile(os.path.join(tmpdir, 'offsets.sqlite3'))
 
 
@@ -32,6 +34,8 @@ def test_data_flow_manager_read(tmpdir):
                   Partition('topic_1', 1, [Message(0, 'key_1', 'val_1',
                                            123456789, None)]),
                   Partition('topic_2', 0, [Message(0, 'key_1', 'val_1',
+                                           123456789, None)]),
+                  Partition('topic_2', 1, [Message(0, None, 'val_1',
                                            123456789, None)]),
                  ]
     data_flow_manager.write(offsets, partitions)
