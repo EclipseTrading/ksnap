@@ -65,8 +65,17 @@ class KsnapManager:
                          f'to topic: {partition.topic} '
                          f'partition: {partition.name} in kafka broker')
             writer = ConfluentKafkaWriter(self.config.brokers)
+
+            i = 0
             for msg in partition.messages:
+                i += 1
                 writer.write(partition.topic, partition.name, msg)
+
+                # TODO: Our queue seems to need flushing more often, try
+                # every 10 messages first and see what happens.
+                if i % 10 == 0:
+                    writer.flush()
+
             writer.flush()
         # Write topic messages to kafka broker
         pool = ThreadPool(self.config.threads)

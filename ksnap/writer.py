@@ -24,17 +24,31 @@ class KafkaWriter(ABC):
 class ConfluentKafkaWriter(KafkaWriter):
 
     def __init__(self, kafka_hosts: List[str]):
-        self.config = {'bootstrap.servers': ','.join(kafka_hosts)}
+        # TODO: adjust
+        self.config = {
+            'bootstrap.servers': ','.join(kafka_hosts),
+            'queue.buffering.max.messages': 50000000,
+            'queue.buffering.max.ms': 900000,
+            'batch.num.messages': 10,
+            'message.timeout.ms': 2147483647,
+            'queue.buffering.max.kbytes': 2097151,
+        }
         self.producer = Producer(**self.config)
         self.messages: List[Message] = []
 
     def write(self, topic: str, partiton: int, message: Message):
-        self.producer.produce(
-            topic=topic, value=message.value, key=message.key,
-            partition=partiton, on_delivery=self.delivery_callback,
-            timestamp=message.timestamp,
-            headers=message.headers)
-        self.producer.poll(0)
+        while True:
+            try:
+                self.producer.produce(
+                    topic=topic, value=message.value, key=message.key,
+                    partition=partiton, on_delivery=self.delivery_callback,
+                    timestamp=message.timestamp,
+                    headers=message.headers)
+                self.producer.poll(0)
+                break
+            except BufferError as e:
+                print(e, file=sys.stderr)
+                self.producer.poll(100)
 
     def flush(self):
         self.producer.flush()

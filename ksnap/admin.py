@@ -50,6 +50,7 @@ class ConfluentAdminClient:
             "max.poll.interval.ms": 10000,
             "auto.offset.reset": "smallest",
             "enable.auto.commit": False,
+            "session.timeout.ms": 10000,
         }
 
     @staticmethod

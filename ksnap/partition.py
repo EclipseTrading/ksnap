@@ -34,7 +34,7 @@ class Partition:
         create_table_query = (
             "CREATE TABLE IF NOT EXISTS data "
             "(offset INTEGER PRIMARY KEY, "
-            "key BLOB NOT NULL, "
+            "key BLOB, "
             "message BLOB, "
             "timestamp INTEGER, "
             "headers TEXT)"
