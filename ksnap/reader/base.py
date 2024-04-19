@@ -44,7 +44,7 @@ class KafkaReader(ABC):
         pass
 
     @abstractmethod
-    def read(self):
+    def read(self, timeout: int = 0):
         pass
 
     @abstractmethod
