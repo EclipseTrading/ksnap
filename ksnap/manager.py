@@ -22,6 +22,7 @@ class KsnapManager:
 
     def __init__(self, config: KsnapConfig):
         self.config = config
+        self.data_flow_manager = DataFlowManager(self.config.data)
 
     def backup(self):
         # Read topic messages from kafka broker
@@ -41,19 +42,30 @@ class KsnapManager:
                 topics.append(t)
         else:
             topics = self.config.topics
-        reader.subscribe(topics)
-        msg_dict = reader.read(timeout=self.config.consumer_timeout)
-        partitions = [
-            Partition(topic, partition_no, msgs)
-            for (topic, partition_no), msgs in msg_dict.items()
-        ]
+
+        # Fetch topics and write to disk
+        for topic in topics:
+            self.read_topic_and_write_to_disk(topic)
         # Fetch consumer group offsets
         admin_client = ConfluentAdminClient(self.config.brokers)
         offsets = admin_client.get_consumer_offsets(
             topics, no_of_threads=self.config.threads)
-        # Write topic messages and consumer offsets to disk
-        data_flow_manager = DataFlowManager(self.config.data)
-        data_flow_manager.write(offsets, partitions)
+        # Write consumer offsets to disk
+        self.data_flow_manager.write_offsets(offsets)
+
+    def read_topic_and_write_to_disk(self, topic: str):
+        # Read topic messages from kafka broker
+        reader = ConfluentKafkaReader(self.config.brokers) \
+          if self.config.kafka_library == 'confluent' \
+          else PythonKafkaReader(self.config.brokers)
+        reader.subscribe([topic])
+        msg_dict = reader.read(timeout=self.config.consumer_timeout)
+        partitions = [
+          Partition(_topic, partition_no, msgs)
+          for (_topic, partition_no), msgs in msg_dict.items()
+        ]
+        # Write topic messages to disk
+        self.data_flow_manager.write_partitions(partitions)
 
     def restore(self):
         # Read topic messages and consumer offsets from disk

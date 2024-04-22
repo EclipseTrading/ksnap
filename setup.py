@@ -50,7 +50,7 @@ for item in requirements:
 
 setup(
     name='ksnap',
-    version='2.0.5',
+    version='2.1.0',
     packages=find_packages(),
     python_requires='>=3.6, <4',
     install_requires=requires,
